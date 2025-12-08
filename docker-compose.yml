@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - micro-net
+
+  discovery:
+    build: ./service-decouverte
+    container_name: discovery
+    ports:
+      - "4000:4000"
+    networks:
+      - micro-net
+
+  service-user:
+    build: ./service-user
+    container_name: service-user
+    ports:
+      - "3000:3000"
+    environment:
+      DISCOVERY_URL: "http://discovery:4000/register"
+    depends_on:
+      - discovery
+    networks:
+      - micro-net
+
+  service-voiture:
+    build: ./service-voiture
+    container_name: service-voiture
+    ports:
+      - "3001:3001"
+    environment:
+      DISCOVERY_URL: "http://discovery:4000/register"
+    depends_on:
+      - discovery
+    networks:
+      - micro-net
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "5000:5000"
+    environment:
+      DISCOVERY_URL: "http://discovery:4000/register"
+    depends_on:
+      - discovery
+      - service-user
+      - service-voiture
+    networks:
+      - micro-net
+
+networks:
+  micro-net:
+    driver: bridge
