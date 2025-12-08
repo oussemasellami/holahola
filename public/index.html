@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat Socket.IO - NestJS</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  </head>
+  <body>
+    <h1>Chat en temps réel</h1>
+    <input id="username" placeholder="Entrez votre nom" />
+    <button id="joinBtn">Rejoindre</button>
+    <div id="chat"></div>
+    <input id="message" placeholder="Votre message..." />
+    <button id="sendBtn">Envoyer</button>
+
+    <script>
+      const socket = io('http://localhost:3000/chat');
+      const chat = document.getElementById('chat');
+      const usernameInput = document.getElementById('username');
+      const messageInput = document.getElementById('message');
+
+      document.getElementById('joinBtn').onclick = () => {
+        const username = usernameInput.value;
+        socket.emit('join', username);
+      };
+
+      document.getElementById('sendBtn').onclick = () => {
+        const msg = {
+          sender: usernameInput.value,
+          content: messageInput.value,
+        };
+        socket.emit('message', msg);
+        messageInput.value = '';
+      };
+
+      socket.on('message', (msg) => {
+        const p = document.createElement('p');
+        p.textContent = `${msg.sender}: ${msg.content}`;
+        chat.appendChild(p);
+      });
+
+      socket.on('userJoined', (username) => {
+        const p = document.createElement('p');
+        p.textContent = `🟢 ${username} a rejoint le chat`;
+        chat.appendChild(p);
+      });
+
+      socket.on('userDisconnected', (username) => {
+        const p = document.createElement('p');
+        p.textContent = `🔴 ${username} a quitté le chat`;
+        chat.appendChild(p);
+      });
+    </script>
+  </body>
+</html>
